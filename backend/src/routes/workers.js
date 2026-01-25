@@ -1,6 +1,7 @@
 import express from 'express'
-import { spawnWorker, getWorkers, getWorker, updateWorker, removeWorker, assignTask, sendMessage, getWorkerActivity } from '../services/workerService.js'
+import { spawnWorker, getWorkers, getWorker, updateWorker, removeWorker, assignTask, sendMessage, getWorkerActivity, executeCommandWithPermission } from '../services/workerService.js'
 import * as fileService from '../services/fileService.js'
+import * as permissionService from '../services/permissionService.js'
 
 const router = express.Router()
 
@@ -111,13 +112,13 @@ router.delete('/:workerId', (req, res) => {
 router.post('/:workerId/task', async (req, res) => {
   try {
     const { workerId } = req.params
-    const { task, context } = req.body
+    const { task, context, debugUntilWorks = false, maxIterations = 10 } = req.body
     
     if (!task) {
       return res.status(400).json({ error: 'Task is required' })
     }
 
-    const result = await assignTask(workerId, task, context)
+    const result = await assignTask(workerId, task, context, { debugUntilWorks, maxIterations })
     
     res.json({
       success: true,
@@ -135,7 +136,7 @@ router.post('/:workerId/task', async (req, res) => {
 // Assign task to multiple workers (job sharing)
 router.post('/tasks/multi', async (req, res) => {
   try {
-    const { workerIds, task, shareContext = true } = req.body
+    const { workerIds, task, shareContext = true, debugUntilWorks = false, maxIterations = 10 } = req.body
     
     if (!task || !Array.isArray(workerIds) || workerIds.length === 0) {
       return res.status(400).json({ 
@@ -158,7 +159,7 @@ router.post('/tasks/multi', async (req, res) => {
           }
         }
         
-        return await assignTask(workerId, task, context)
+        return await assignTask(workerId, task, context, { debugUntilWorks, maxIterations })
       })
     )
 
@@ -432,6 +433,75 @@ router.post('/:workerId/terminal/execute', async (req, res) => {
     res.status(500).json({ 
       success: false,
       error: error.message 
+    })
+  }
+})
+
+// Get pending permissions
+router.get('/permissions/pending', (req, res) => {
+  try {
+    const pending = permissionService.getPendingPermissions()
+    res.json({ success: true, permissions: pending })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get pending permissions',
+      message: error.message
+    })
+  }
+})
+
+// Grant permission
+router.post('/permissions/:permissionId/grant', async (req, res) => {
+  try {
+    const { permissionId } = req.params
+    const result = permissionService.grantPermission(permissionId)
+    
+    if (result.success) {
+      // Execute the command now that permission is granted
+      const permission = result.permission
+      try {
+        const commandResult = await executeCommandWithPermission(permission.workerId, permission.command, permissionId)
+        res.json({
+          success: true,
+          permission: result.permission,
+          commandResult
+        })
+      } catch (cmdError) {
+        res.json({
+          success: true,
+          permission: result.permission,
+          commandResult: { success: false, error: cmdError.message }
+        })
+      }
+    } else {
+      res.status(404).json(result)
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to grant permission',
+      message: error.message
+    })
+  }
+})
+
+// Deny permission
+router.post('/permissions/:permissionId/deny', (req, res) => {
+  try {
+    const { permissionId } = req.params
+    const result = permissionService.denyPermission(permissionId)
+    
+    if (result.success) {
+      res.json({ success: true, permission: result.permission })
+    } else {
+      res.status(404).json(result)
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to deny permission',
+      message: error.message
     })
   }
 })

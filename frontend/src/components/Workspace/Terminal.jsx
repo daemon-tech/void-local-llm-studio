@@ -8,6 +8,7 @@ export default function Terminal() {
   const [currentInput, setCurrentInput] = useState('')
   const [isExecuting, setIsExecuting] = useState(false)
   const [cwd, setCwd] = useState('')
+  const [lastCommandTimestamp, setLastCommandTimestamp] = useState(0)
   const terminalRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -23,10 +24,64 @@ export default function Terminal() {
     }
   }, [projectRoot])
 
-  // Auto-scroll to bottom
+  // Poll for worker commands from shared terminal
+  useEffect(() => {
+    if (!isConnected) return
+
+    const pollWorkerCommands = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/terminal/history?since=${lastCommandTimestamp}`)
+        const data = await response.json()
+        
+        if (data.success && data.commands && data.commands.length > 0) {
+          const newCommands = data.commands.map(cmd => ({
+            type: 'command',
+            content: cmd.command,
+            workerId: cmd.workerId,
+            workerName: cmd.workerName,
+            timestamp: cmd.timestamp,
+            isWorker: true
+          }))
+          
+          const newOutputs = data.commands.map(cmd => ({
+            type: cmd.success ? 'output' : 'error',
+            content: cmd.output || (cmd.success ? 'Command executed successfully' : 'Command failed'),
+            workerId: cmd.workerId,
+            workerName: cmd.workerName,
+            timestamp: cmd.timestamp + 1, // Slightly after command
+            exitCode: cmd.exitCode,
+            isWorker: true
+          }))
+          
+          setHistory(prev => {
+            const existingIds = new Set(prev.map(h => h.timestamp))
+            const filtered = [...newCommands, ...newOutputs].filter(c => !existingIds.has(c.timestamp))
+            return [...prev, ...filtered].slice(-500) // Keep last 500 entries
+          })
+          
+          // Update last timestamp
+          const maxTimestamp = Math.max(...data.commands.map(c => c.timestamp))
+          if (maxTimestamp > lastCommandTimestamp) {
+            setLastCommandTimestamp(maxTimestamp)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to poll worker commands:', error)
+      }
+    }
+
+    pollWorkerCommands()
+    const interval = setInterval(pollWorkerCommands, 1000) // Poll every second
+    return () => clearInterval(interval)
+  }, [isConnected, lastCommandTimestamp])
+
+  // Auto-scroll to bottom with smooth animation
   useEffect(() => {
     if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight
+      terminalRef.current.scrollTo({
+        top: terminalRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
     }
   }, [history])
 
@@ -135,13 +190,26 @@ export default function Terminal() {
           </div>
         ) : (
           history.map((item, index) => (
-            <div key={index} className={`terminal-line ${item.type}`}>
+            <div key={`${item.timestamp}-${index}`} className={`terminal-line ${item.type} ${item.isWorker ? 'worker-command' : ''}`}>
               {item.type === 'command' && (
                 <span className="terminal-prompt">
-                  <span className="terminal-prompt-user">user</span>
-                  <span className="terminal-prompt-separator">@</span>
-                  <span className="terminal-prompt-host">void</span>
-                  <span className="terminal-prompt-path">:{cwd.split(/[/\\]/).pop() || '~'}$</span>
+                  {item.isWorker ? (
+                    <>
+                      <span className="terminal-prompt-worker" style={{ color: '#00AAFF' }}>
+                        {item.workerName || 'worker'}
+                      </span>
+                      <span className="terminal-prompt-separator">@</span>
+                      <span className="terminal-prompt-host">void</span>
+                      <span className="terminal-prompt-path">:{cwd.split(/[/\\]/).pop() || '~'}$</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="terminal-prompt-user">user</span>
+                      <span className="terminal-prompt-separator">@</span>
+                      <span className="terminal-prompt-host">void</span>
+                      <span className="terminal-prompt-path">:{cwd.split(/[/\\]/).pop() || '~'}$</span>
+                    </>
+                  )}
                 </span>
               )}
               <span className="terminal-content">{item.content}</span>

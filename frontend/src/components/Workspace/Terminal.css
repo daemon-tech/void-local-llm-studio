@@ -71,6 +71,7 @@
   font-size: 13px;
   line-height: 1.6;
   color: var(--text);
+  scroll-behavior: smooth;
 }
 
 .terminal-empty {
@@ -96,11 +97,42 @@
   margin-bottom: 4px;
   word-wrap: break-word;
   white-space: pre-wrap;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.3s ease;
+  transition: all 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .terminal-line.command {
   color: var(--accent);
+}
+
+.terminal-line.worker-command {
+  background: rgba(0, 170, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 3px;
+  border-left: 2px solid #00AAFF;
+  animation: slideInLeft 0.3s ease;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .terminal-line.output {
@@ -113,6 +145,7 @@
 
 .terminal-line.executing {
   opacity: 0.7;
+  animation: blink 1s infinite;
 }
 
 .terminal-prompt {
@@ -139,6 +172,12 @@
 .terminal-prompt-path {
   color: var(--status-blue);
   margin-left: 2px;
+}
+
+.terminal-prompt-worker {
+  color: #00AAFF;
+  font-weight: 600;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .terminal-content {

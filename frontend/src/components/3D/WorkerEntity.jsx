@@ -13,16 +13,24 @@ export default function WorkerEntity({ worker, position }) {
   const { selectedWorker, setSelectedWorker, setSelectedWorkerPosition } = useVoidStore()
   const isSelected = selectedWorker === worker.id
 
+  // Check if worker is thinking/reasoning
+  const isThinking = useMemo(() => {
+    if (!worker.activityLog || worker.activityLog.length === 0) return false
+    const latestActivity = worker.activityLog[worker.activityLog.length - 1]
+    return latestActivity && (latestActivity.type === 'thinking' || latestActivity.type === 'reasoning')
+  }, [worker.activityLog])
+
   // Status colors - ENDFIELDTOOLS palette
   const statusColor = useMemo(() => {
+    if (isThinking) return '#00AAFF' // Blue for thinking
     switch (worker.status) {
       case 'idle': return '#AAAAAA'
       case 'working': return '#FFFF00'
-      case 'communicating': return '#00C000'
+      case 'communicating': return '#00AAFF' // Blue for thinking/communicating
       case 'error': return '#C00000'
       default: return '#AAAAAA'
     }
-  }, [worker.status])
+  }, [worker.status, isThinking])
 
   // Store current world position for popup positioning
   const currentPositionRef = useRef([...position])
@@ -44,26 +52,37 @@ export default function WorkerEntity({ worker, position }) {
         groupRef.current.position.z
       ]
       
-      // Core rotation - faster when working
+      // Core rotation - faster when working, pulsing when thinking
       if (coreRef.current) {
-        const speed = worker.status === 'working' ? 0.02 : 0.005
+        let speed = worker.status === 'working' ? 0.02 : 0.005
+        if (isThinking) {
+          // Pulsing animation for thinking
+          const pulse = Math.sin(state.clock.elapsedTime * 4) * 0.1 + 1.0
+          coreRef.current.scale.setScalar(pulse)
+          speed = 0.015 // Moderate speed when thinking
+        } else {
+          coreRef.current.scale.setScalar(1.0)
+        }
         coreRef.current.rotation.x += speed
         coreRef.current.rotation.y += speed * 1.3
         coreRef.current.rotation.z += speed * 0.7
       }
       
-      // Orbital rings rotation
+      // Orbital rings rotation - faster when thinking
       if (ring1Ref.current) {
-        ring1Ref.current.rotation.y += worker.status === 'working' ? 0.03 : 0.01
+        const ringSpeed = isThinking ? 0.04 : (worker.status === 'working' ? 0.03 : 0.01)
+        ring1Ref.current.rotation.y += ringSpeed
       }
       if (ring2Ref.current) {
-        ring2Ref.current.rotation.y -= worker.status === 'working' ? 0.02 : 0.008
+        const ringSpeed = isThinking ? -0.03 : (worker.status === 'working' ? -0.02 : -0.008)
+        ring2Ref.current.rotation.y += ringSpeed
         ring2Ref.current.rotation.x += 0.005
       }
       
-      // Particle rotation
+      // Particle rotation - faster when thinking
       if (particlesRef.current) {
-        particlesRef.current.rotation.y += 0.015
+        const particleSpeed = isThinking ? 0.03 : 0.015
+        particlesRef.current.rotation.y += particleSpeed
       }
     }
   })
@@ -106,7 +125,7 @@ export default function WorkerEntity({ worker, position }) {
         <meshStandardMaterial
           color="#1A1A1A"
           emissive={statusColor}
-          emissiveIntensity={worker.status === 'working' ? 0.3 : 0.1}
+          emissiveIntensity={isThinking ? 0.5 : (worker.status === 'working' ? 0.3 : 0.1)}
           roughness={0.8}
           metalness={0.3}
         />
@@ -118,7 +137,7 @@ export default function WorkerEntity({ worker, position }) {
         <meshStandardMaterial
           color={statusColor}
           emissive={statusColor}
-          emissiveIntensity={worker.status === 'working' ? 1.0 : 0.5}
+          emissiveIntensity={isThinking ? 1.5 : (worker.status === 'working' ? 1.0 : 0.5)}
           transparent
           opacity={0.8}
         />

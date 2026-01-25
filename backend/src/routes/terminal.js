@@ -142,4 +142,27 @@ router.post('/cd', async (req, res) => {
   })
 })
 
+// Get shared terminal history (all worker commands)
+router.get('/history', async (req, res) => {
+  try {
+    const { getCommandHistory, getRecentCommands } = await import('../services/terminalService.js')
+    const { since } = req.query
+    
+    if (since) {
+      const sinceTimestamp = parseInt(since, 10)
+      const recent = getRecentCommands(sinceTimestamp)
+      res.json({ success: true, commands: recent })
+    } else {
+      const limit = parseInt(req.query.limit || '100', 10)
+      const history = getCommandHistory(limit)
+      res.json({ success: true, commands: history })
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
 export default router

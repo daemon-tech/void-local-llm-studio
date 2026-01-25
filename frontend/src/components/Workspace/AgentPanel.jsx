@@ -13,6 +13,8 @@ export default function AgentPanel({ onTaskSubmit }) {
   const [feed, setFeed] = useState([])
   const [selectedWorkerDetail, setSelectedWorkerDetail] = useState(null)
   const [showProjectWizard, setShowProjectWizard] = useState(false)
+  const [debugUntilWorks, setDebugUntilWorks] = useState(false)
+  const [pendingPermissions, setPendingPermissions] = useState([])
   const feedRef = useRef(null)
 
   // Poll for worker updates and active jobs
@@ -44,25 +46,39 @@ export default function AgentPanel({ onTaskSubmit }) {
             }
           }
           
-          // Add activity log entries
+          // Add activity log entries with enhanced types
           if (worker.activityLog && worker.activityLog.length > 0) {
             const latestActivity = worker.activityLog[worker.activityLog.length - 1]
             if (latestActivity && !feed.find(f => f.id === `activity-${worker.id}-${latestActivity.timestamp}`)) {
-              const activityType = latestActivity.type === 'file_created' ? 'result' :
-                                   latestActivity.type === 'file_deleted' ? 'result' :
-                                   latestActivity.type === 'command_executed' ? 'result' :
-                                   latestActivity.type === 'task_error' ? 'error' : 'task'
+              // Enhanced activity type mapping
+              let activityType = 'task'
+              if (latestActivity.type === 'thinking' || latestActivity.type === 'reasoning') {
+                activityType = 'thinking'
+              } else if (latestActivity.type === 'file_created') {
+                activityType = 'result'
+              } else if (latestActivity.type === 'file_deleted') {
+                activityType = 'result'
+              } else if (latestActivity.type === 'command_executed') {
+                activityType = 'command'
+              } else if (latestActivity.type === 'task_error') {
+                activityType = 'error'
+              } else if (latestActivity.type === 'task_completed') {
+                activityType = 'result'
+              } else if (latestActivity.type === 'task_started') {
+                activityType = 'task'
+              }
               
               setFeed(prev => [{
                 id: `activity-${worker.id}-${latestActivity.timestamp}`,
                 workerId: worker.id,
                 workerName: worker.name || worker.model,
                 type: activityType,
+                activityType: latestActivity.type, // Store original type
                 content: latestActivity.message,
                 context: latestActivity.details ? JSON.stringify(latestActivity.details) : undefined,
                 timestamp: latestActivity.timestamp,
                 status: worker.status
-              }, ...prev].slice(0, 100))
+              }, ...prev].slice(0, 200)) // Increased to 200 for better visibility
             }
           }
         })
@@ -76,10 +92,34 @@ export default function AgentPanel({ onTaskSubmit }) {
     return () => clearInterval(interval)
   }, [isConnected, feed])
 
-  // Auto-scroll feed to bottom
+  // Poll for pending permissions
+  useEffect(() => {
+    if (!isConnected) return
+
+    const pollPermissions = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/workers/permissions/pending')
+        const data = await response.json()
+        if (data.success) {
+          setPendingPermissions(data.permissions || [])
+        }
+      } catch (error) {
+        console.error('Failed to poll permissions:', error)
+      }
+    }
+
+    pollPermissions()
+    const interval = setInterval(pollPermissions, 1500)
+    return () => clearInterval(interval)
+  }, [isConnected])
+
+  // Auto-scroll feed to bottom with smooth animation
   useEffect(() => {
     if (feedRef.current) {
-      feedRef.current.scrollTop = feedRef.current.scrollHeight
+      feedRef.current.scrollTo({
+        top: feedRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
     }
   }, [feed])
 
@@ -124,7 +164,9 @@ export default function AgentPanel({ onTaskSubmit }) {
         body: JSON.stringify({ 
           workerIds: selectedWorkers,
           task: taskText,
-          shareContext: true
+          shareContext: true,
+          debugUntilWorks: debugUntilWorks,
+          maxIterations: 10
         })
       })
       
@@ -203,6 +245,78 @@ export default function AgentPanel({ onTaskSubmit }) {
         </button>
       </div>
 
+      {/* Permission Requests */}
+      {pendingPermissions.length > 0 && (
+        <div className="agent-permissions-section">
+          <h4 className="agent-permissions-title">Permission Requests</h4>
+          {pendingPermissions.map(permission => {
+            const worker = workers.find(w => w.id === permission.workerId)
+            return (
+              <div key={permission.id} className="agent-permission-item">
+                <div className="agent-permission-header">
+                  <span className="agent-permission-worker">{worker?.name || permission.workerId}</span>
+                  <span className="agent-permission-type">{permission.type}</span>
+                </div>
+                <div className="agent-permission-description">{permission.description}</div>
+                <div className="agent-permission-command">
+                  <code>{permission.command}</code>
+                </div>
+                <div className="agent-permission-actions">
+                  <button
+                    className="agent-permission-grant"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`http://localhost:3000/api/workers/permissions/${permission.id}/grant`, {
+                          method: 'POST'
+                        })
+                        const data = await response.json()
+                        if (data.success) {
+                          setPendingPermissions(prev => prev.filter(p => p.id !== permission.id))
+                          setFeed(prev => [{
+                            id: `permission-granted-${permission.id}`,
+                            type: 'result',
+                            content: `Permission granted: ${permission.description}`,
+                            timestamp: Date.now()
+                          }, ...prev])
+                        }
+                      } catch (error) {
+                        console.error('Failed to grant permission:', error)
+                      }
+                    }}
+                  >
+                    Grant
+                  </button>
+                  <button
+                    className="agent-permission-deny"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`http://localhost:3000/api/workers/permissions/${permission.id}/deny`, {
+                          method: 'POST'
+                        })
+                        const data = await response.json()
+                        if (data.success) {
+                          setPendingPermissions(prev => prev.filter(p => p.id !== permission.id))
+                          setFeed(prev => [{
+                            id: `permission-denied-${permission.id}`,
+                            type: 'error',
+                            content: `Permission denied: ${permission.description}`,
+                            timestamp: Date.now()
+                          }, ...prev])
+                        }
+                      } catch (error) {
+                        console.error('Failed to deny permission:', error)
+                      }
+                    }}
+                  >
+                    Deny
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {/* Worker Selection */}
       <div className="agent-worker-selection">
         <div className="agent-worker-list">
@@ -274,6 +388,17 @@ export default function AgentPanel({ onTaskSubmit }) {
             }
           }}
         />
+        <div className="agent-task-options">
+          <label className="agent-debug-checkbox">
+            <input
+              type="checkbox"
+              checked={debugUntilWorks}
+              onChange={(e) => setDebugUntilWorks(e.target.checked)}
+              disabled={loading}
+            />
+            <span>Debug until it works (iterative testing & fixing)</span>
+          </label>
+        </div>
         <button
           className="agent-submit-btn"
           onClick={handleSubmit}
@@ -314,36 +439,52 @@ export default function AgentPanel({ onTaskSubmit }) {
               <p className="agent-feed-empty-hint">Assign tasks to workers to see live updates</p>
             </div>
           ) : (
-            feed.map(item => (
-              <div key={item.id} className={`agent-feed-item ${item.type}`}>
-                <div className="agent-feed-header">
-                  <div className="agent-feed-header-left">
-                    <span className={`agent-feed-type-badge ${item.type}`}>
-                      {item.type === 'job' && '📋'}
-                      {item.type === 'task' && '⚡'}
-                      {item.type === 'result' && '✅'}
-                      {item.type === 'error' && '❌'}
-                      {item.type.toUpperCase()}
+            feed.map(item => {
+              // Determine icon and styling based on activity type
+              const getIcon = () => {
+                if (item.activityType === 'thinking' || item.activityType === 'reasoning') return '💭'
+                if (item.activityType === 'command_executed') return '⚙️'
+                if (item.type === 'job') return '📋'
+                if (item.type === 'task') return '⚡'
+                if (item.type === 'result') return '✅'
+                if (item.type === 'error') return '❌'
+                if (item.type === 'command') return '💻'
+                return '📝'
+              }
+              
+              const getTypeLabel = () => {
+                if (item.activityType === 'thinking') return 'THINKING'
+                if (item.activityType === 'reasoning') return 'REASONING'
+                if (item.activityType === 'command_executed') return 'COMMAND'
+                return item.type.toUpperCase()
+              }
+              
+              return (
+                <div key={item.id} className={`agent-feed-item ${item.type} ${item.activityType || ''} ${item.status || ''}`}>
+                  <div className="agent-feed-header">
+                    <div className="agent-feed-header-left">
+                      <span className={`agent-feed-type-badge ${item.type} ${item.activityType || ''}`}>
+                        {getIcon()} {getTypeLabel()}
+                      </span>
+                      {item.workerName && (
+                        <span className="agent-feed-worker">
+                          <span className="agent-feed-worker-icon">🤖</span>
+                          {item.workerName}
+                        </span>
+                      )}
+                    </div>
+                    <span className="agent-feed-time">
+                      {new Date(item.timestamp).toLocaleTimeString()}
                     </span>
-                    {item.workerName && (
-                      <span className="agent-feed-worker">
-                        <span className="agent-feed-worker-icon">🤖</span>
-                        {item.workerName}
+                  </div>
+                  <div className="agent-feed-content">
+                    {item.content}
+                    {item.status && (
+                      <span className={`agent-feed-status agent-feed-status-${item.status}`}>
+                        {item.status}
                       </span>
                     )}
                   </div>
-                  <span className="agent-feed-time">
-                    {new Date(item.timestamp).toLocaleTimeString()}
-                  </span>
-                </div>
-                <div className="agent-feed-content">
-                  {item.content}
-                  {item.status && (
-                    <span className={`agent-feed-status agent-feed-status-${item.status}`}>
-                      {item.status}
-                    </span>
-                  )}
-                </div>
                 {item.result && (
                   <details className="agent-feed-result">
                     <summary className="agent-feed-result-summary">
@@ -355,14 +496,15 @@ export default function AgentPanel({ onTaskSubmit }) {
                     </div>
                   </details>
                 )}
-                {item.context && (
-                  <div className="agent-feed-context">
-                    <span className="agent-feed-context-label">Context:</span>
-                    <span className="agent-feed-context-value">{item.context}</span>
-                  </div>
-                )}
-              </div>
-            ))
+                  {item.context && (
+                    <div className="agent-feed-context">
+                      <span className="agent-feed-context-label">Context:</span>
+                      <span className="agent-feed-context-value">{item.context}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })
           )}
         </div>
       </div>

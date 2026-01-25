@@ -26,8 +26,11 @@ router.post('/check', async (req, res) => {
     // Quick check if Ollama is reachable
     try {
       const response = await axios.get(`${url}/api/tags`, {
-        timeout: 3000,
-        validateStatus: () => true // Don't throw on any status code
+        timeout: 5000,
+        validateStatus: () => true, // Don't throw on any status code
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
       
       // If we get a 200 response, Ollama is definitely online
@@ -49,31 +52,32 @@ router.post('/check', async (req, res) => {
       
     } catch (error) {
       // Network-level errors mean Ollama is truly offline
-      if (error.code === 'ECONNREFUSED') {
-        console.log(`[Ollama Check] ❌ Connection refused at ${url} - Ollama is not running`)
-        return res.json({ online: false, error: 'Connection refused' })
+      if (error.code === 'ECONNREFUSED' || error.code === 'ECONNRESET') {
+        console.log(`[Ollama Check] Connection refused at ${url} - Ollama may not be running`)
+        return res.json({ online: false, error: 'Connection refused', code: error.code })
       } 
       
-      if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
-        console.log(`[Ollama Check] ❌ Timeout connecting to ${url}`)
-        return res.json({ online: false, error: 'Connection timeout' })
+      if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout') || error.code === 'ECONNABORTED') {
+        console.log(`[Ollama Check] Timeout connecting to ${url}`)
+        return res.json({ online: false, error: 'Connection timeout', code: error.code })
       }
       
       if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
-        console.log(`[Ollama Check] ❌ DNS/hostname error for ${url}`)
-        return res.json({ online: false, error: 'Host not found' })
+        console.log(`[Ollama Check] DNS/hostname error for ${url}`)
+        return res.json({ online: false, error: 'Host not found', code: error.code })
       }
       
       // If axios got a response object, server is reachable
       if (error.response) {
         const status = error.response.status
-        console.log(`[Ollama Check] ⚠️ HTTP ${status} from ${url} - server is reachable`)
+        console.log(`[Ollama Check] HTTP ${status} from ${url} - server is reachable`)
         // Consider it online if server responded (even with error)
         return res.json({ online: status < 500, status })
       }
       
-      console.log(`[Ollama Check] ❌ Error: ${error.message} (code: ${error.code})`)
-      return res.json({ online: false, error: error.message, code: error.code })
+      // Unknown error - log it but assume offline
+      console.log(`[Ollama Check] Unknown error:`, error.code, error.message)
+      return res.json({ online: false, error: error.message || 'Unknown error', code: error.code })
     }
   } catch (err) {
     console.error('[Ollama Check] Outer error:', err)

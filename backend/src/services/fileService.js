@@ -96,13 +96,35 @@ export async function workerCreateFile(filePath, content = '') {
 export async function workerDeleteFile(filePath) {
   try {
     const PROJECT_ROOT = getProjectRoot()
-    const fullPath = path.join(PROJECT_ROOT, filePath)
-    if (!fullPath.startsWith(PROJECT_ROOT)) {
+    const fullPath = path.resolve(PROJECT_ROOT, filePath)
+    const rootPath = path.resolve(PROJECT_ROOT)
+    
+    if (!fullPath.startsWith(rootPath)) {
       throw new Error('Access denied')
     }
-    await fs.unlink(fullPath)
-    return { success: true }
+    
+    try {
+      const stats = await fs.stat(fullPath)
+      if (stats.isDirectory()) {
+        // Delete directory recursively
+        await fs.rm(fullPath, { recursive: true, force: true })
+      } else {
+        // Delete file
+        await fs.unlink(fullPath)
+      }
+      return { success: true }
+    } catch (statError) {
+      // If file doesn't exist, that's okay - just return success (idempotent)
+      if (statError.code === 'ENOENT') {
+        return { success: true, message: 'File already deleted or does not exist' }
+      }
+      throw statError
+    }
   } catch (error) {
+    // If file doesn't exist, that's okay - just return success (idempotent)
+    if (error.code === 'ENOENT') {
+      return { success: true, message: 'File already deleted or does not exist' }
+    }
     return { success: false, error: error.message }
   }
 }

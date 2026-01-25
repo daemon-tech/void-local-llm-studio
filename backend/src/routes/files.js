@@ -144,7 +144,7 @@ router.post('/project/create', async (req, res) => {
       },
       python: {
         files: {
-          'main.py': `# ${name}\n${description ? f'# {description}\n' : ''}\nprint("Hello, ${name}!")\n`,
+          'main.py': `# ${name}\n${description ? `# ${description}\n` : ''}\nprint("Hello, ${name}!")\n`,
           'requirements.txt': '',
           '.gitignore': '__pycache__/\n*.pyc\n.env\n'
         }

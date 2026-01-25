@@ -1,0 +1,39 @@
+.neural-network-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.neural-network-overlay:hover {
+  opacity: 0.8;
+}
+
+/* Reduce visual clutter on smaller screens */
+@media (max-width: 1024px) {
+  .neural-network-overlay {
+    opacity: 0.3;
+  }
+}
+
+.neural-network-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+}
+
+.neural-network-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .neural-network-overlay {
+    opacity: 0.4;
+  }
+}

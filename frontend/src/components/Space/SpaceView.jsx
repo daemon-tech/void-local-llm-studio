@@ -87,7 +87,7 @@ export default function SpaceView() {
 
   return (
     <div className="space-view">
-      {/* 3D Canvas - Full screen 3D environment */}
+      {/* 3D Canvas - Full screen 3D neural network environment */}
       <Canvas
         gl={{ antialias: true, alpha: false }}
         dpr={[1, 2]}
@@ -96,21 +96,22 @@ export default function SpaceView() {
           gl.setClearColor('#0d0d0f', 1)
         }}
       >
-        <PerspectiveCamera makeDefault position={[0, 10, 15]} fov={55} />
+        <PerspectiveCamera makeDefault position={[0, 8, 12]} fov={60} />
         <OrbitControls
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
-          minDistance={5}
-          maxDistance={40}
-          target={[0, 0, 0]}
+          minDistance={8}
+          maxDistance={30}
+          target={[0, 2, 0]}
           enableDamping={true}
           dampingFactor={0.05}
         />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 12, 8]} intensity={0.7} castShadow />
-        <directionalLight position={[-10, 8, -8]} intensity={0.3} />
-        <pointLight position={[0, 8, 0]} intensity={0.4} color="#a78bfa" distance={25} />
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[10, 15, 8]} intensity={0.8} castShadow />
+        <directionalLight position={[-10, 10, -8]} intensity={0.4} />
+        <pointLight position={[0, 8, 0]} intensity={0.5} color="#FFFF00" distance={30} />
+        <fog attach="fog" args={['#0d0d0f', 10, 50]} />
         <Suspense fallback={null}>
           <VoidScene />
         </Suspense>
