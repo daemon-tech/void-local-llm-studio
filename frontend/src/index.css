@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ENDFIELDTOOLS Color Palette */
+  --bg: #121212;
+  --bg-elevated: #1A1A1A;
+  --bg-secondary: #1B1B1B;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #FFFFFF;
+  --text-muted: #AAAAAA;
+  --accent: #FFFF00;
+  --accent-alt: #F9E000;
+  --accent-dim: rgba(255, 255, 0, 0.15);
+  --glow: rgba(255, 255, 0, 0.3);
+  
+  /* Status Colors */
+  --status-green: #00C000;
+  --status-red: #C00000;
+  --status-blue: #4A9EFF;
+  --status-orange: #FF8C00;
+  
+  /* Responsive breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+.void-app {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.void-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: var(--bg);
+  z-index: 0;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-elevated);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+/* Global Animations - ENDFIELD Style */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--accent-dim);
+  }
+  50% {
+    box-shadow: 0 0 15px var(--glow);
+  }
+}
+
+@keyframes accentGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px var(--accent-dim));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+}
+
+/* Smooth transitions for interactive elements */
+button, a, input, textarea, select {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects */
+button:hover:not(:disabled),
+a:hover {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled),
+a:active {
+  transform: translateY(0);
+}
+
+/* Focus states with ENDFIELD accent */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* Responsive base styles */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  button, a {
+    transition: all 0.15s ease;
+  }
+}

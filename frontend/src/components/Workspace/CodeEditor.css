@@ -1,0 +1,102 @@
+.code-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+}
+
+.code-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.code-editor-file-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.code-editor-modified {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-editor-format-btn,
+.code-editor-save-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-editor-format-btn {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.code-editor-format-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.code-editor-save-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.code-editor-save-btn:hover {
+  background: var(--accent-alt);
+  border-color: var(--accent-alt);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 255, 0, 0.3);
+}
+
+.code-editor-format-btn:active,
+.code-editor-save-btn:active {
+  transform: translateY(0);
+}
+
+.code-editor-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .code-editor-header {
+    padding: 6px 12px;
+  }
+  
+  .code-editor-file-name {
+    font-size: 11px;
+  }
+  
+  .code-editor-save-btn {
+    padding: 3px 10px;
+    font-size: 10px;
+  }
+}

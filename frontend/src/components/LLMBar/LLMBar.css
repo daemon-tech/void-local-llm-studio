@@ -1,0 +1,118 @@
+.llm-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  backdrop-filter: blur(10px);
+}
+
+.llm-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.llm-bar-logo {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.llm-bar-logo::first-letter {
+  color: var(--accent);
+}
+
+.llm-bar-model {
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.llm-bar-model::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-dim);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.llm-bar-model:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(255, 255, 0, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 0, 0.2);
+}
+
+.llm-bar-model:hover::before {
+  opacity: 1;
+}
+
+.llm-bar-model:active {
+  transform: translateY(0);
+}
+
+.llm-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.llm-bar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.llm-bar-dot.on {
+  background: var(--status-green);
+  box-shadow: 0 0 8px rgba(0, 192, 0, 0.6);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(0, 192, 0, 0.6);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 12px rgba(0, 192, 0, 0.8);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .llm-bar {
+    padding: 10px 16px;
+  }
+  
+  .llm-bar-logo {
+    font-size: 14px;
+  }
+  
+  .llm-bar-model {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+}

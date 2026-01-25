@@ -1,0 +1,29 @@
+.hud {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  pointer-events: none;
+  background: var(--bg);
+}
+
+/* Ensure tabs/header are behind worker detail panel */
+.hud-main {
+  z-index: 10;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+.hud-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+  animation: fadeIn 0.4s ease;
+}

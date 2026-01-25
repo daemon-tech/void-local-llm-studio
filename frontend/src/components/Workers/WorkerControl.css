@@ -1,0 +1,159 @@
+.worker-control {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 320px;
+  max-height: 400px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .worker-control {
+    width: calc(100% - 24px);
+    left: 12px;
+    bottom: 12px;
+    max-height: 50vh;
+  }
+}
+
+.worker-control-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.worker-control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.worker-control-header h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.worker-control-role {
+  font-size: 10px;
+  padding: 4px 10px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.worker-control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.worker-control-section label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.worker-control-section textarea,
+.worker-control-section select {
+  font-size: 12px;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.worker-control-section textarea:focus,
+.worker-control-section select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.worker-control-section textarea:disabled,
+.worker-control-section select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-task,
+.btn-message {
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.btn-task {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-task:hover:not(:disabled) {
+  background: var(--accent-alt);
+  border-color: var(--accent-alt);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 0, 0.3);
+}
+
+.btn-task:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-message {
+  background: rgba(0, 192, 0, 0.1);
+  border-color: var(--status-green);
+  color: var(--status-green);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-message:hover:not(:disabled) {
+  background: var(--status-green);
+  color: var(--bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 192, 0, 0.3);
+}
+
+.btn-message:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-task:disabled,
+.btn-message:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

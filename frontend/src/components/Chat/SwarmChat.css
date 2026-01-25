@@ -1,0 +1,224 @@
+.swarm-chat-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.swarm-chat-modal {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  border: 2px solid var(--neon-pink);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  height: 80vh;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+  animation: slideIn 0.3s ease-out;
+}
+
+.swarm-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 2px solid var(--neon-pink);
+}
+
+.swarm-chat-header h3 {
+  color: var(--neon-pink);
+  font-family: 'Orbitron', monospace;
+  margin: 0;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.swarm-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.chat-empty p {
+  margin: 5px 0;
+}
+
+.chat-hint {
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.chat-message {
+  padding: 12px 15px;
+  border-radius: 8px;
+  max-width: 80%;
+  animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  background: rgba(0, 255, 255, 0.2);
+  border: 1px solid var(--neon-cyan);
+}
+
+.chat-message.assistant {
+  align-self: flex-start;
+  background: rgba(255, 0, 255, 0.2);
+  border: 1px solid var(--neon-pink);
+}
+
+.chat-message.error {
+  align-self: flex-start;
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid #ff0000;
+}
+
+.chat-message.loading {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.message-role {
+  font-weight: bold;
+  font-family: 'Orbitron', monospace;
+}
+
+.message-time {
+  opacity: 0.6;
+}
+
+.message-content {
+  color: white;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.typing-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-pink);
+  margin: 0 2px;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+}
+
+.swarm-chat-input {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 2px solid var(--neon-pink);
+}
+
+.swarm-chat-input textarea {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--neon-pink);
+  border-radius: 6px;
+  padding: 10px;
+  color: white;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  resize: none;
+  transition: all 0.3s;
+}
+
+.swarm-chat-input textarea:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.swarm-chat-input textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.send-btn {
+  background: rgba(255, 0, 255, 0.2);
+  border: 2px solid var(--neon-pink);
+  color: var(--neon-pink);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.send-btn:hover:not(:disabled) {
+  background: rgba(255, 0, 255, 0.4);
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
