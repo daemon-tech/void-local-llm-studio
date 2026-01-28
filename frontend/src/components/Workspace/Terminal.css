@@ -2,8 +2,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--bg);
+  background: #0a0a0c;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
+  color: #FFFFFF;
 }
 
 .terminal-header {
@@ -11,8 +12,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-elevated);
+  border-bottom: 1px solid rgba(255, 255, 0, 0.2);
+  background: #1A1A1A;
 }
 
 .terminal-header-left {
@@ -113,7 +114,8 @@
 }
 
 .terminal-line.command {
-  color: var(--accent);
+  color: #FFFF00;
+  font-weight: 500;
 }
 
 .terminal-line.worker-command {
@@ -136,11 +138,12 @@
 }
 
 .terminal-line.output {
-  color: var(--text);
+  color: #FFFFFF;
 }
 
 .terminal-line.error {
-  color: var(--status-red);
+  color: #C00000;
+  font-weight: 500;
 }
 
 .terminal-line.executing {
@@ -155,22 +158,22 @@
 }
 
 .terminal-prompt-user {
-  color: var(--accent);
+  color: #FFFF00;
   font-weight: 600;
 }
 
 .terminal-prompt-separator {
-  color: var(--text-muted);
+  color: #AAAAAA;
   margin: 0 2px;
 }
 
 .terminal-prompt-host {
-  color: var(--status-green);
+  color: #00C000;
   font-weight: 500;
 }
 
 .terminal-prompt-path {
-  color: var(--status-blue);
+  color: #4A9EFF;
   margin-left: 2px;
 }
 
@@ -186,7 +189,7 @@
 
 .executing-text {
   animation: blink 1s infinite;
-  color: var(--accent);
+  color: #FFFF00;
 }
 
 @keyframes blink {
@@ -195,7 +198,7 @@
 }
 
 .terminal-exit-code {
-  color: var(--status-red);
+  color: #C00000;
   font-size: 11px;
   margin-left: 8px;
   opacity: 0.7;
@@ -205,20 +208,27 @@
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-elevated);
+  border-top: 1px solid rgba(255, 255, 0, 0.2);
+  background: #1A1A1A;
   gap: 8px;
 }
 
 .terminal-input {
   flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text);
+  background: #0a0a0c;
+  border: 1px solid rgba(255, 255, 0, 0.2);
+  border-radius: 4px;
+  color: #FFFFFF;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 13px;
   outline: none;
-  padding: 4px 0;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.terminal-input:focus {
+  border-color: #FFFF00;
+  box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.1);
 }
 
 .terminal-input:disabled {
@@ -227,7 +237,7 @@
 }
 
 .terminal-input::placeholder {
-  color: var(--text-muted);
+  color: #666666;
 }
 
 /* Scrollbar styling */
